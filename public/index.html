@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f8a5f">
+    <title>Let's PEIGO ｜ TurnCloud × Peigo 果昔塔羅</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2026051307">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- 裝飾性背景元素 -->
+    <div class="bg-decor" aria-hidden="true">
+        <span class="blob blob-green"></span>
+        <span class="blob blob-yellow"></span>
+        <span class="blob blob-pink"></span>
+    </div>
+
+    <main id="app">
+        <!-- 頂部品牌列 -->
+        <header class="brand-bar">
+            <div class="brand-logo">
+                <img src="assets/peigo-logo.jpg" alt="Peigo 沛果果昔">
+            </div>
+            <div class="brand-tagline">
+                <span class="tagline-en">Made by YOU. Fresh by PEIGO</span>
+                <span class="tagline-tc">比瓶裝更新鮮 ・ 比手搖更健康</span>
+            </div>
+        </header>
+
+        <!-- Step 1: 拍照 -->
+        <section id="step1" class="step active">
+            <div class="step-head">
+                <span class="step-tag">STEP 01</span>
+                <h1>拍張<em>好心情</em>照片</h1>
+                <p class="subtitle">讓 AI 用你的笑容，現打一杯專屬果昔運勢</p>
+            </div>
+
+            <div class="camera-frame">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="photoCanvas" hidden></canvas>
+                <div class="camera-ring" aria-hidden="true"></div>
+            </div>
+
+            <button class="btn btn-primary btn-shutter" type="button" onclick="takePhoto()">
+                <span class="btn-icon" aria-hidden="true">●</span>
+                <span>立即拍照</span>
+            </button>
+            <p class="hint">系統會自動開啟前鏡頭，請保持微笑 :)</p>
+        </section>
+
+        <!-- Step 2: 選擇果昔塔羅 -->
+        <section id="step2" class="step">
+            <div class="step-head">
+                <span class="step-tag">STEP 02</span>
+                <h1>選一杯你的<em>命運果昔</em></h1>
+                <p class="subtitle">4 種 Peigo 鮮果配方，對應 4 張今日塔羅</p>
+            </div>
+
+            <div class="tarot-selection">
+                <button class="tarot-item" type="button" onclick="selectTarot('sun')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-01.jpg" alt="太陽 - 芒來百旺"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">太陽</span>
+                        <span class="tarot-flavor">芒來百旺</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('star')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-02.jpg" alt="星星 - 藍莓香蕉"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">星星</span>
+                        <span class="tarot-flavor">藍莓香蕉</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('wheel')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-03.jpg" alt="命運之輪 - 羽衣纖橙"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">命運之輪</span>
+                        <span class="tarot-flavor">羽衣纖橙</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('strength')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-04.jpg" alt="力量 - 草莓紅芭樂"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">力量</span>
+                        <span class="tarot-flavor">草莓紅芭樂</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Step 2.5: AI 生成中 -->
+        <section id="loadingStep" class="step">
+            <div class="loading-card">
+                <img class="loading-mascot" src="assets/go-mascot.jpg" alt="Peigo Mascot">
+                <h1>Peigo 正在現打你的<em>夢幻場景</em>…</h1>
+                <p class="loading-engine">由 <strong>TurnCloud AI OS:Banana Split</strong> 智慧引擎驅動</p>
+                <div class="loader"></div>
+                <ul class="loading-steps">
+                    <li>3D 風格化你的笑容</li>
+                    <li>融合 Peigo 果昔場景與品牌視覺元素</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Step 3: 結果 -->
+        <section id="step3" class="step">
+            <div class="step-head">
+                <span class="step-tag">STEP 03</span>
+                <h1>你的<em>專屬果昔運勢</em></h1>
+                <p class="subtitle" id="resultSubtitle">下載分享，邀朋友一起 Let's PEIGO!</p>
+            </div>
+
+            <div class="result-frame">
+                <img id="resultImage" class="result-image" alt="你的專屬果昔運勢海報" hidden>
+                <canvas id="resultCanvas"></canvas>
+            </div>
+
+            <div class="action-row">
+                <button class="btn btn-primary" type="button" onclick="downloadImage()">下載分享圖</button>
+                <button class="btn btn-ghost" type="button" onclick="restart()">再玩一次</button>
+            </div>
+        </section>
+
+        <!-- Footer: 合作品牌 -->
+        <footer class="partner-footer">
+            <span class="powered">Powered by</span>
+            <div class="partner-logos">
+                <img src="assets/turncloud-logo.png" alt="TurnCloud" class="partner-logo partner-tc">
+                <span class="divider" aria-hidden="true"></span>
+                <img src="assets/accucrazy-logo.webp" alt="Accucrazy" class="partner-logo partner-accu">
+            </div>
+            <span class="copyright">© 2026 TurnCloud × Peigo ・ Let's PEIGO together!</span>
+        </footer>
+    </main>
+
+    <script src="script.js?v=2026051307"></script>
+</body>
+</html>

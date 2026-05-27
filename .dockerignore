@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.DS_Store
+.git
+.gitignore
+.gcloudignore
+deploy.sh
+README.md
+public/assets/generated
+public/assets/fused-sample.png
+public/assets/peigo-mascot.jpg
+public/assets/peigo-mascot.png
+public/assets/tarot-star.png
+public/assets/tarot-strength.png
+public/assets/tarot-sun.png
+public/assets/tarot-wheel.png
+public/assets/711-logo.jpg

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>TurnCloud AI OS:Banana Split Pipeline Terminal</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 20px; line-height: 1.5; }
+        .log-container { white-space: pre-wrap; word-wrap: break-word; }
+        .cursor { display: inline-block; width: 10px; height: 20px; background: #0f0; animation: blink 1s infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 50.1%, 100% { opacity: 0; } }
+        .timestamp { color: #888; margin-right: 10px; }
+        .info { color: #00ff00; }
+        .warning { color: #ffff00; }
+        .success { color: #00ffff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="terminal" class="log-container"></div>
+    <span class="cursor"></span>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/public/pipeline.log?t=' + new Date().getTime());
+                const text = await response.text();
+                terminal.innerText = text;
+                window.scrollTo(0, document.body.scrollHeight);
+            } catch (e) {}
+        }
+        setInterval(fetchLogs, 1000);
+        fetchLogs();
+    </script>
+</body>
+</html>
