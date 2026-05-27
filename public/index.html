@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026051307">
+    <link rel="stylesheet" href="style.css?v=2026051309">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -43,13 +43,16 @@
                 <video id="video" autoplay playsinline muted></video>
                 <canvas id="photoCanvas" hidden></canvas>
                 <div class="camera-ring" aria-hidden="true"></div>
+                <div id="countdownOverlay" class="countdown-overlay" hidden>
+                    <span id="countdownNumber">5</span>
+                </div>
             </div>
 
-            <button class="btn btn-primary btn-shutter" type="button" onclick="takePhoto()">
+            <button id="shutterButton" class="btn btn-primary btn-shutter" type="button" disabled>
                 <span class="btn-icon" aria-hidden="true">●</span>
-                <span>立即拍照</span>
+                <span id="shutterText">準備相機中…</span>
             </button>
-            <p class="hint">系統會自動開啟前鏡頭，請保持微笑 :)</p>
+            <p class="hint">系統會自動開啟前鏡頭，倒數 5 秒後自動拍照，請保持微笑 :)</p>
         </section>
 
         <!-- Step 2: 選擇果昔塔羅 -->
@@ -119,9 +122,17 @@
                 <canvas id="resultCanvas"></canvas>
             </div>
 
+            <div id="downloadQrCard" class="download-qr-card" hidden>
+                <div class="qr-copy">
+                    <span class="qr-kicker">SCAN TO DOWNLOAD</span>
+                    <strong>掃碼下載你的專屬海報</strong>
+                    <span>手機相機掃描 QR Code 即可開啟原圖</span>
+                </div>
+                <img id="downloadQrImage" class="download-qr" alt="下載海報 QR Code">
+            </div>
+
             <div class="action-row">
                 <button class="btn btn-primary" type="button" onclick="downloadImage()">下載分享圖</button>
-                <button class="btn btn-ghost" type="button" onclick="restart()">再玩一次</button>
             </div>
         </section>
 
@@ -137,6 +148,6 @@
         </footer>
     </main>
 
-    <script src="script.js?v=2026051307"></script>
+    <script src="script.js?v=2026051309"></script>
 </body>
 </html>

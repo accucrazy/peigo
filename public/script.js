@@ -41,6 +41,10 @@ const tarotCards = [
 let capturedImage = null;
 let selectedTarot = null;
 let cameraStream = null;
+let countdownTimer = null;
+let countdownRemaining = 5;
+let hasAutoCaptured = false;
+let currentDownloadUrl = null;
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -67,15 +71,63 @@ function showStep(id) {
 async function startCamera() {
     const video = $('#video');
     try {
+        resetCaptureCountdown();
         cameraStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } },
             audio: false
         });
         video.srcObject = cameraStream;
+        await new Promise((resolve) => {
+            if (video.readyState >= 2 && video.videoWidth) return resolve();
+            video.onloadedmetadata = () => resolve();
+        });
+        startCaptureCountdown(5);
     } catch (err) {
         console.error('無法啟動相機:', err);
         alert('無法啟動相機，請允許瀏覽器使用相機權限。');
     }
+}
+
+function resetCaptureCountdown() {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+    countdownRemaining = 5;
+    hasAutoCaptured = false;
+    const overlay = $('#countdownOverlay');
+    const number = $('#countdownNumber');
+    const shutterButton = $('#shutterButton');
+    const shutterText = $('#shutterText');
+    if (overlay) overlay.hidden = true;
+    if (number) number.textContent = '5';
+    if (shutterButton) shutterButton.disabled = true;
+    if (shutterText) shutterText.textContent = '準備相機中…';
+}
+
+function startCaptureCountdown(seconds = 5) {
+    clearInterval(countdownTimer);
+    countdownRemaining = seconds;
+    const overlay = $('#countdownOverlay');
+    const number = $('#countdownNumber');
+    const shutterText = $('#shutterText');
+    if (overlay) overlay.hidden = false;
+
+    const render = () => {
+        if (number) number.textContent = String(countdownRemaining);
+        if (shutterText) shutterText.textContent = `${countdownRemaining} 秒後自動拍照`;
+    };
+
+    render();
+    countdownTimer = setInterval(() => {
+        countdownRemaining -= 1;
+        if (countdownRemaining <= 0) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            if (shutterText) shutterText.textContent = '拍照中…';
+            takePhoto();
+            return;
+        }
+        render();
+    }, 1000);
 }
 
 function stopCamera() {
@@ -87,12 +139,17 @@ function stopCamera() {
 
 /* ── Step 1：拍照 ───────────────────────── */
 function takePhoto() {
+    if (hasAutoCaptured) return;
     const video = $('#video');
     const canvas = $('#photoCanvas');
     if (!video.videoWidth) {
-        alert('鏡頭尚未準備好，請稍候再試。');
+        startCaptureCountdown(2);
         return;
     }
+    hasAutoCaptured = true;
+    clearInterval(countdownTimer);
+    const overlay = $('#countdownOverlay');
+    if (overlay) overlay.hidden = true;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
@@ -126,6 +183,12 @@ async function selectTarot(key) {
         const data = await response.json();
         if (!data.fusedImage) throw new Error('Engine returned no image');
         await displayFusedResult(data.fusedImage);
+        renderDownloadQr(data.downloadUrl || currentDownloadUrl, data.qrImage);
+        const subtitle = document.getElementById('resultSubtitle');
+        if (subtitle) {
+            subtitle.textContent = '掃描下方 QR Code 即可下載原圖';
+            subtitle.style.color = '';
+        }
         celebrate();
         showStep('step3');
     } catch (err) {
@@ -157,6 +220,7 @@ function displayFusedResult(imageSrc) {
         canvas.width = 1080;
         canvas.height = 1920;
         const resolvedSrc = resolveImageUrl(imageSrc);
+        currentDownloadUrl = new URL(resolvedSrc, window.location.origin).href;
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -173,15 +237,32 @@ function displayFusedResult(imageSrc) {
     });
 }
 
+function renderDownloadQr(url, qrImage) {
+    const card = $('#downloadQrCard');
+    const image = $('#downloadQrImage');
+    if (!card || !image || !url) return;
+    card.hidden = false;
+    image.src = qrImage || `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(url)}`;
+    image.onerror = () => {
+        console.error('QR Code 載入失敗:', image.src);
+        card.hidden = true;
+    };
+}
+
 /* ── Fallback：本地 Canvas 合成 ──────────── */
 async function generateFinalResult() {
     const canvas = $('#resultCanvas');
     const ctx = canvas.getContext('2d');
     const resultImage = $('#resultImage');
+    currentDownloadUrl = null;
     if (resultImage) {
         resultImage.hidden = true;
         resultImage.removeAttribute('src');
     }
+    const qrCard = $('#downloadQrCard');
+    if (qrCard) qrCard.hidden = true;
+    const qrImage = $('#downloadQrImage');
+    if (qrImage) qrImage.removeAttribute('src');
     canvas.width = 1080;
     canvas.height = 1920;
 
@@ -293,16 +374,15 @@ function celebrate() {
     });
 }
 
-/* ── 重新開始 ───────────────────────────── */
-function restart() {
-    capturedImage = null;
-    selectedTarot = null;
-    showStep('step1');
-    startCamera();
-}
-
 /* ── 下載分享圖 ─────────────────────────── */
 function downloadImage() {
+    if (currentDownloadUrl) {
+        const link = document.createElement('a');
+        link.download = `peigo-tarot-${selectedTarot ? selectedTarot.key : 'result'}.jpg`;
+        link.href = currentDownloadUrl;
+        link.click();
+        return;
+    }
     const canvas = $('#resultCanvas');
     const link = document.createElement('a');
     link.download = `peigo-tarot-${selectedTarot ? selectedTarot.key : 'result'}.jpg`;

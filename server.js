@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const QRCode = require('qrcode');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -10,6 +11,7 @@ const API_PREFIX = '/fusion-api';
 const ENGINE_TAG = 'TurnCloud AI OS:Banana Split';
 const MODEL_ID = process.env.MODEL_ID || 'gemini-3-pro-image-preview';
 
+app.set('trust proxy', true);
 app.use(bodyParser.json({ limit: '50mb' }));
 
 // CORS（同源時其實不需要，留著保險）
@@ -142,8 +144,17 @@ app.post(`${API_PREFIX}/fuse`, async (req, res) => {
         const filePath = path.join(GENERATED_DIR, fileName);
         fs.writeFileSync(filePath, buffer);
         const fusedUrl = `/generated/${fileName}`;
+        const downloadUrl = new URL(fusedUrl, `${req.protocol}://${req.get('host')}`).href;
+        const qrImage = await QRCode.toDataURL(downloadUrl, {
+            width: 256,
+            margin: 1,
+            color: {
+                dark: '#0a6b48',
+                light: '#ffffff'
+            }
+        });
         console.log(`[${ENGINE_TAG}] Poster generated (${buffer.length} bytes) -> ${fusedUrl}`);
-        res.json({ fusedImage: fusedUrl, fusedSize: buffer.length });
+        res.json({ fusedImage: fusedUrl, downloadUrl, qrImage, fusedSize: buffer.length });
         pruneGeneratedDir();
 
     } catch (error) {
