@@ -3,40 +3,116 @@
    Steps: 1) 拍照 → 2) 選果昔塔羅 → loading → 3) 結果
    ========================================================= */
 
-const tarotCards = [
-    {
-        key: "sun",
-        name: "太陽",
-        flavor: "芒來百旺",
-        meaning: "活力與成功",
-        advice: "今天的你光芒四射，來杯 Peigo 芒來百旺果昔，喚醒一整天的好能量！",
-        image: "assets/peigo-smoothie-01.jpg"
+const LANG = (document.documentElement.lang || 'zh-TW').toLowerCase().startsWith('ja') ? 'ja' : 'zh';
+
+const I18N = {
+    zh: {
+        cameraError: '無法啟動相機，請允許瀏覽器使用相機權限。',
+        preparing: '準備相機中…',
+        countdown: (n) => `${n} 秒後自動拍照`,
+        capturing: '拍照中…',
+        resultReady: '掃描下方 QR Code 即可下載原圖',
+        engineBusy: (msg) => `引擎暫時忙線（${msg}），先給你一張預覽版，再點一次就會重試。`,
+        imageLoadFailed: (src) => `生成圖載入失敗：${src}`,
+        overlayTitle: (name) => `今日塔羅：${name}`,
+        fortuneTitle: (card) => `${card.name}｜${card.meaning}`,
+        resultTitle: (name) => [`${name} 的`, '專屬果昔運勢', ''],
+        font: "'Noto Sans TC', Arial"
     },
-    {
-        key: "star",
-        name: "星星",
-        flavor: "藍莓香蕉",
-        meaning: "希望與靈感",
-        advice: "靈感正悄悄醞釀，讓 Peigo 藍莓香蕉為你點亮夜空中最閃的那顆星。",
-        image: "assets/peigo-smoothie-02.jpg"
-    },
-    {
-        key: "wheel",
-        name: "命運之輪",
-        flavor: "羽衣纖橙",
-        meaning: "轉機與運氣",
-        advice: "命運齒輪正在轉動，羽衣纖橙果昔幫你穩穩接住每一個新機會。",
-        image: "assets/peigo-smoothie-03.jpg"
-    },
-    {
-        key: "strength",
-        name: "力量",
-        flavor: "草莓紅芭樂",
-        meaning: "勇氣與自信",
-        advice: "相信自己的步伐，一杯 Peigo 草莓紅芭樂，補滿你的內心電量！",
-        image: "assets/peigo-smoothie-04.jpg"
+    ja: {
+        cameraError: 'カメラを起動できません。ブラウザでカメラへのアクセスを許可してください。',
+        preparing: 'カメラを準備中…',
+        countdown: (n) => `${n} 秒後に自動撮影`,
+        capturing: '撮影中…',
+        resultReady: '下の QR コードを読み取ると元画像をダウンロードできます',
+        engineBusy: (msg) => `エンジンが混み合っています（${msg}）。まずはプレビュー版をどうぞ。もう一度タップすると再試行します。`,
+        imageLoadFailed: (src) => `生成画像の読み込みに失敗しました：${src}`,
+        overlayTitle: (name) => `今日のタロット：${name}`,
+        fortuneTitle: (card) => `${card.name}｜${card.meaning}`,
+        resultTitle: (name) => [`${name} さんだけの`, 'スムージー占い', ''],
+        leadInvalidName: 'お名前を入力してください。',
+        leadInvalidEmail: 'メールアドレスの形式をご確認ください。',
+        leadNeedConsent: '同意にチェックを入れてください。',
+        leadSending: '送信中…',
+        leadSent: (email) => `登録ありがとうございます！${email} に資料をお送りしました。`,
+        leadSentWaiting: 'ポスターはもうすぐ完成します…',
+        leadFailed: '送信できませんでした。お手数ですが、もう一度お試しください。',
+        font: "'Noto Sans JP', 'Noto Sans TC', Arial"
     }
-];
+};
+const T = I18N[LANG];
+
+const TAROT_CARDS = {
+    zh: [
+        {
+            key: "sun",
+            name: "太陽",
+            flavor: "芒來百旺",
+            meaning: "活力與成功",
+            advice: "今天的你光芒四射，來杯 Peigo 芒來百旺果昔，喚醒一整天的好能量！",
+            image: "assets/peigo-smoothie-01.jpg"
+        },
+        {
+            key: "star",
+            name: "星星",
+            flavor: "藍莓香蕉",
+            meaning: "希望與靈感",
+            advice: "靈感正悄悄醞釀，讓 Peigo 藍莓香蕉為你點亮夜空中最閃的那顆星。",
+            image: "assets/peigo-smoothie-02.jpg"
+        },
+        {
+            key: "wheel",
+            name: "命運之輪",
+            flavor: "羽衣纖橙",
+            meaning: "轉機與運氣",
+            advice: "命運齒輪正在轉動，羽衣纖橙果昔幫你穩穩接住每一個新機會。",
+            image: "assets/peigo-smoothie-03.jpg"
+        },
+        {
+            key: "strength",
+            name: "力量",
+            flavor: "草莓紅芭樂",
+            meaning: "勇氣與自信",
+            advice: "相信自己的步伐，一杯 Peigo 草莓紅芭樂，補滿你的內心電量！",
+            image: "assets/peigo-smoothie-04.jpg"
+        }
+    ],
+    ja: [
+        {
+            key: "sun",
+            name: "太陽",
+            flavor: "マンゴーパッション",
+            meaning: "活力と成功",
+            advice: "今日のあなたは輝きに満ちています。Peigo マンゴーパッションで一日中エネルギーチャージ！",
+            image: "assets/peigo-smoothie-01.jpg"
+        },
+        {
+            key: "star",
+            name: "星",
+            flavor: "ブルーベリーバナナ",
+            meaning: "希望とひらめき",
+            advice: "ひらめきが静かに育っています。Peigo ブルーベリーバナナが夜空で一番輝く星を灯します。",
+            image: "assets/peigo-smoothie-02.jpg"
+        },
+        {
+            key: "wheel",
+            name: "運命の輪",
+            flavor: "ケールオレンジ",
+            meaning: "転機と幸運",
+            advice: "運命の歯車が回り始めました。ケールオレンジで新しいチャンスをしっかりキャッチ。",
+            image: "assets/peigo-smoothie-03.jpg"
+        },
+        {
+            key: "strength",
+            name: "力",
+            flavor: "ストロベリーグァバ",
+            meaning: "勇気と自信",
+            advice: "自分の歩みを信じて。Peigo ストロベリーグァバで心のバッテリーをフル充電！",
+            image: "assets/peigo-smoothie-04.jpg"
+        }
+    ]
+};
+const tarotCards = TAROT_CARDS[LANG];
 
 let capturedImage = null;
 let selectedTarot = null;
@@ -45,6 +121,9 @@ let countdownTimer = null;
 let countdownRemaining = 5;
 let hasAutoCaptured = false;
 let currentDownloadUrl = null;
+let resultReady = false;
+let leadName = '';
+let leadSubmitted = false;
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -84,7 +163,7 @@ async function startCamera() {
         startCaptureCountdown(5);
     } catch (err) {
         console.error('無法啟動相機:', err);
-        alert('無法啟動相機，請允許瀏覽器使用相機權限。');
+        alert(T.cameraError);
     }
 }
 
@@ -100,7 +179,7 @@ function resetCaptureCountdown() {
     if (overlay) overlay.hidden = true;
     if (number) number.textContent = '5';
     if (shutterButton) shutterButton.disabled = true;
-    if (shutterText) shutterText.textContent = '準備相機中…';
+    if (shutterText) shutterText.textContent = T.preparing;
 }
 
 function startCaptureCountdown(seconds = 5) {
@@ -113,7 +192,7 @@ function startCaptureCountdown(seconds = 5) {
 
     const render = () => {
         if (number) number.textContent = String(countdownRemaining);
-        if (shutterText) shutterText.textContent = `${countdownRemaining} 秒後自動拍照`;
+        if (shutterText) shutterText.textContent = T.countdown(countdownRemaining);
     };
 
     render();
@@ -122,7 +201,7 @@ function startCaptureCountdown(seconds = 5) {
         if (countdownRemaining <= 0) {
             clearInterval(countdownTimer);
             countdownTimer = null;
-            if (shutterText) shutterText.textContent = '拍照中…';
+            if (shutterText) shutterText.textContent = T.capturing;
             takePhoto();
             return;
         }
@@ -167,6 +246,9 @@ function takePhoto() {
 async function selectTarot(key) {
     selectedTarot = tarotCards.find(t => t.key === key);
     if (!selectedTarot) return;
+    resultReady = false;
+    const readyBar = $('#resultReadyBar');
+    if (readyBar) readyBar.hidden = true;
     showStep('loadingStep');
 
     try {
@@ -174,7 +256,7 @@ async function selectTarot(key) {
         const response = await fetch(FUSION_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: capturedImage, tarot: selectedTarot })
+            body: JSON.stringify({ image: capturedImage, tarot: selectedTarot, lang: LANG })
         });
         if (!response.ok) {
             const txt = await response.text().catch(() => '');
@@ -186,21 +268,103 @@ async function selectTarot(key) {
         renderDownloadQr(data.downloadUrl || currentDownloadUrl, data.qrImage);
         const subtitle = document.getElementById('resultSubtitle');
         if (subtitle) {
-            subtitle.textContent = '掃描下方 QR Code 即可下載原圖';
+            subtitle.textContent = T.resultReady;
             subtitle.style.color = '';
         }
-        celebrate();
-        showStep('step3');
+        onResultReady();
     } catch (err) {
         console.error('[TurnCloud AI OS:Banana Split] Fallback to local canvas:', err);
         await generateFinalResult();
         const subtitle = document.getElementById('resultSubtitle');
         if (subtitle) {
-            subtitle.textContent = `引擎暫時忙線（${err.message || err}），先給你一張預覽版，再點一次就會重試。`;
+            subtitle.textContent = T.engineBusy(err.message || err);
             subtitle.style.color = '#c0392b';
         }
-        celebrate();
-        showStep('step3');
+        onResultReady();
+    }
+}
+
+/* ── 生成完成：填寫中就不打斷，改顯示「看結果」按鈕 ── */
+function isFillingLeadForm() {
+    const form = $('#leadForm');
+    if (!form || leadSubmitted) return false;
+    const typed = ['#leadName', '#leadEmail'].some(sel => $(sel) && $(sel).value.trim());
+    return typed || form.contains(document.activeElement);
+}
+
+function onResultReady() {
+    resultReady = true;
+    if (isFillingLeadForm()) {
+        const readyBar = $('#resultReadyBar');
+        if (readyBar) readyBar.hidden = false;
+        return;
+    }
+    goToResult();
+}
+
+function goToResult() {
+    renderResultText();
+    celebrate();
+    showStep('step3');
+}
+
+function renderResultText() {
+    const title = $('#resultTitle');
+    if (title && leadName) {
+        const [before, em, after] = T.resultTitle(leadName);
+        const emEl = document.createElement('em');
+        emEl.textContent = em;
+        title.replaceChildren(before, emEl, after);
+    }
+    const card = $('#fortuneCard');
+    if (card && selectedTarot) {
+        $('#fortuneTitle').textContent = T.fortuneTitle(selectedTarot);
+        $('#fortuneAdvice').textContent = selectedTarot.advice;
+        card.hidden = false;
+    }
+}
+
+/* ── 留資表單（日文版）：名字顯示在結果頁、資料寄到信箱 ── */
+function setLeadStatus(text, isError = false) {
+    const status = $('#leadStatus');
+    if (!status) return;
+    status.textContent = text;
+    status.classList.toggle('is-error', isError);
+}
+
+async function submitLead(event) {
+    event.preventDefault();
+    const name = $('#leadName').value.trim();
+    const email = $('#leadEmail').value.trim();
+    if (!name) return setLeadStatus(T.leadInvalidName, true);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setLeadStatus(T.leadInvalidEmail, true);
+    if (!$('#leadConsent').checked) return setLeadStatus(T.leadNeedConsent, true);
+
+    const button = $('#leadSubmit');
+    button.disabled = true;
+    setLeadStatus(T.leadSending);
+    try {
+        const response = await fetch('/api/lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                email,
+                consent: true,
+                lang: LANG,
+                tarot: selectedTarot ? selectedTarot.key : ''
+            })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        leadName = name;
+        leadSubmitted = true;
+        $('#leadForm').querySelectorAll('input').forEach(input => { input.disabled = true; });
+        setLeadStatus(`${T.leadSent(email)}${resultReady ? '' : ` ${T.leadSentWaiting}`}`);
+        if (resultReady) setTimeout(goToResult, 1600);
+    } catch (err) {
+        console.error('Lead submit failed:', err);
+        button.disabled = false;
+        setLeadStatus(T.leadFailed, true);
     }
 }
 
@@ -232,7 +396,7 @@ function displayFusedResult(imageSrc) {
             drawResultOverlay(ctx);
             resolve();
         };
-        img.onerror = () => reject(new Error(`生成圖載入失敗：${resolvedSrc}`));
+        img.onerror = () => reject(new Error(T.imageLoadFailed(resolvedSrc)));
         img.src = resolvedSrc;
     });
 }
@@ -300,15 +464,15 @@ function drawResultOverlay(ctx) {
     ctx.fillRect(0, 1500, 1080, 420);
 
     ctx.fillStyle = '#ffd84d';
-    ctx.font = "bold 60px 'Noto Sans TC', Arial";
+    ctx.font = `bold 60px ${T.font}`;
     ctx.textAlign = 'center';
-    ctx.fillText(`今日塔羅：${selectedTarot.name}`, 540, 1620);
+    ctx.fillText(T.overlayTitle(selectedTarot.name), 540, 1620);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = "bold 44px 'Noto Sans TC', Arial";
+    ctx.font = `bold 44px ${T.font}`;
     ctx.fillText(`${selectedTarot.flavor} ・ ${selectedTarot.meaning}`, 540, 1680);
 
-    ctx.font = "32px 'Noto Sans TC', Arial";
+    ctx.font = `32px ${T.font}`;
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     wrapText(ctx, selectedTarot.advice, 540, 1740, 940, 42);
 
@@ -392,5 +556,7 @@ function downloadImage() {
 
 /* ── 入口 ───────────────────────────────── */
 window.addEventListener('DOMContentLoaded', () => {
+    const leadForm = $('#leadForm');
+    if (leadForm) leadForm.addEventListener('submit', submitLead);
     startCamera();
 });

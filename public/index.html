@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0f8a5f">
+    <link rel="alternate" hreflang="zh-TW" href="/">
+    <link rel="alternate" hreflang="ja" href="/ja">
     <title>Let's PEIGO ｜ TurnCloud × Peigo 果昔塔羅</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026051309">
+    <link rel="stylesheet" href="style.css?v=2026092902">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
@@ -29,6 +31,10 @@
                 <span class="tagline-en">Made by YOU. Fresh by PEIGO</span>
                 <span class="tagline-tc">比瓶裝更新鮮 ・ 比手搖更健康</span>
             </div>
+            <nav class="lang-switch" aria-label="語言 / Language">
+                <a href="/" lang="zh-TW" aria-current="page">中文</a>
+                <a href="/ja" lang="ja" hreflang="ja">日本語</a>
+            </nav>
         </header>
 
         <!-- Step 1: 拍照 -->
@@ -69,6 +75,7 @@
                     <div class="tarot-meta">
                         <span class="tarot-name">太陽</span>
                         <span class="tarot-flavor">芒來百旺</span>
+                        <span class="tarot-meaning">活力與成功</span>
                     </div>
                 </button>
                 <button class="tarot-item" type="button" onclick="selectTarot('star')">
@@ -76,6 +83,7 @@
                     <div class="tarot-meta">
                         <span class="tarot-name">星星</span>
                         <span class="tarot-flavor">藍莓香蕉</span>
+                        <span class="tarot-meaning">希望與靈感</span>
                     </div>
                 </button>
                 <button class="tarot-item" type="button" onclick="selectTarot('wheel')">
@@ -83,6 +91,7 @@
                     <div class="tarot-meta">
                         <span class="tarot-name">命運之輪</span>
                         <span class="tarot-flavor">羽衣纖橙</span>
+                        <span class="tarot-meaning">轉機與運氣</span>
                     </div>
                 </button>
                 <button class="tarot-item" type="button" onclick="selectTarot('strength')">
@@ -90,6 +99,7 @@
                     <div class="tarot-meta">
                         <span class="tarot-name">力量</span>
                         <span class="tarot-flavor">草莓紅芭樂</span>
+                        <span class="tarot-meaning">勇氣與自信</span>
                     </div>
                 </button>
             </div>
@@ -113,13 +123,19 @@
         <section id="step3" class="step">
             <div class="step-head">
                 <span class="step-tag">STEP 03</span>
-                <h1>你的<em>專屬果昔運勢</em></h1>
+                <h1 id="resultTitle">你的<em>專屬果昔運勢</em></h1>
                 <p class="subtitle" id="resultSubtitle">下載分享，邀朋友一起 Let's PEIGO!</p>
             </div>
 
             <div class="result-frame">
                 <img id="resultImage" class="result-image" alt="你的專屬果昔運勢海報" hidden>
                 <canvas id="resultCanvas"></canvas>
+            </div>
+
+            <div id="fortuneCard" class="fortune-card" hidden>
+                <span class="fortune-kicker">今日塔羅</span>
+                <strong id="fortuneTitle"></strong>
+                <p id="fortuneAdvice"></p>
             </div>
 
             <div id="downloadQrCard" class="download-qr-card" hidden>
@@ -148,6 +164,6 @@
         </footer>
     </main>
 
-    <script src="script.js?v=2026051309"></script>
+    <script src="script.js?v=2026092902"></script>
 </body>
 </html>

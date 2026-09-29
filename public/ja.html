@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f8a5f">
+    <link rel="alternate" hreflang="zh-TW" href="/">
+    <link rel="alternate" hreflang="ja" href="/ja">
+    <title>Let's PEIGO ｜ TurnCloud × Peigo スムージータロット</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2026092902">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <!-- 装飾用の背景 -->
+    <div class="bg-decor" aria-hidden="true">
+        <span class="blob blob-green"></span>
+        <span class="blob blob-yellow"></span>
+        <span class="blob blob-pink"></span>
+    </div>
+
+    <main id="app">
+        <!-- 頂部品牌列 -->
+        <header class="brand-bar">
+            <div class="brand-logo">
+                <img src="assets/peigo-logo.jpg" alt="Peigo スムージー">
+            </div>
+            <div class="brand-tagline">
+                <span class="tagline-en">Made by YOU. Fresh by PEIGO</span>
+                <span class="tagline-tc">ボトルより新鮮 ・ ドリンクスタンドよりヘルシー</span>
+            </div>
+            <nav class="lang-switch" aria-label="言語 / Language">
+                <a href="/" lang="zh-TW" hreflang="zh-TW">中文</a>
+                <a href="/ja" lang="ja" aria-current="page">日本語</a>
+            </nav>
+        </header>
+
+        <!-- Step 1: 撮影 -->
+        <section id="step1" class="step active">
+            <div class="step-head">
+                <span class="step-tag">STEP 01</span>
+                <h1><em>ごきげん</em>な一枚を撮ろう</h1>
+                <p class="subtitle">AI があなたの笑顔から、あなただけのスムージー占いをつくります</p>
+            </div>
+
+            <div class="camera-frame">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="photoCanvas" hidden></canvas>
+                <div class="camera-ring" aria-hidden="true"></div>
+                <div id="countdownOverlay" class="countdown-overlay" hidden>
+                    <span id="countdownNumber">5</span>
+                </div>
+            </div>
+
+            <button id="shutterButton" class="btn btn-primary btn-shutter" type="button" disabled>
+                <span class="btn-icon" aria-hidden="true">●</span>
+                <span id="shutterText">カメラを準備中…</span>
+            </button>
+            <p class="hint">インカメラが自動で起動し、5 秒のカウントダウン後に撮影します。笑顔でどうぞ :)</p>
+        </section>
+
+        <!-- Step 2: スムージータロットを選ぶ -->
+        <section id="step2" class="step">
+            <div class="step-head">
+                <span class="step-tag">STEP 02</span>
+                <h1>あなたの<em>運命のスムージー</em>を選ぼう</h1>
+                <p class="subtitle">Peigo のフレッシュフルーツレシピ 4 種 × 今日のタロット 4 枚</p>
+            </div>
+
+            <div class="tarot-selection">
+                <button class="tarot-item" type="button" onclick="selectTarot('sun')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-01.jpg" alt="太陽 - マンゴーパッション"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">太陽</span>
+                        <span class="tarot-flavor">マンゴーパッション</span>
+                        <span class="tarot-meaning">活力と成功</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('star')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-02.jpg" alt="星 - ブルーベリーバナナ"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">星</span>
+                        <span class="tarot-flavor">ブルーベリーバナナ</span>
+                        <span class="tarot-meaning">希望とひらめき</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('wheel')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-03.jpg" alt="運命の輪 - ケールオレンジ"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">運命の輪</span>
+                        <span class="tarot-flavor">ケールオレンジ</span>
+                        <span class="tarot-meaning">転機と幸運</span>
+                    </div>
+                </button>
+                <button class="tarot-item" type="button" onclick="selectTarot('strength')">
+                    <div class="tarot-img"><img src="assets/peigo-smoothie-04.jpg" alt="力 - ストロベリーグァバ"></div>
+                    <div class="tarot-meta">
+                        <span class="tarot-name">力</span>
+                        <span class="tarot-flavor">ストロベリーグァバ</span>
+                        <span class="tarot-meaning">勇気と自信</span>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Step 2.5: AI 生成中 -->
+        <section id="loadingStep" class="step">
+            <div class="loading-card">
+                <img class="loading-mascot" src="assets/go-mascot.jpg" alt="Peigo Mascot">
+                <h1>Peigo があなたの<em>夢のシーン</em>をブレンド中…</h1>
+                <p class="loading-engine"><strong>TurnCloud AI OS:Banana Split</strong> スマートエンジン搭載</p>
+                <div class="loader"></div>
+                <ul class="loading-steps">
+                    <li>あなたの笑顔を 3D キャラクター化</li>
+                    <li>Peigo スムージーのシーンとブランドビジュアルを融合</li>
+                </ul>
+            </div>
+
+            <!-- 待ち時間に：お名前・メール登録 → 結果にお名前表示＋資料をメール送付 -->
+            <form id="leadForm" class="lead-form" novalidate>
+                <span class="lead-kicker">WHILE YOU WAIT</span>
+                <strong class="lead-title">お名前入りの占い結果＋資料プレゼント</strong>
+                <p class="lead-desc">ご登録いただくと、結果画面にお名前が入り、TurnCloud × Accucrazy の資料をメールでお届けします。</p>
+                <label class="lead-field">
+                    <span>お名前</span>
+                    <input id="leadName" name="name" type="text" maxlength="40" autocomplete="name" placeholder="山田 花子" required>
+                </label>
+                <label class="lead-field">
+                    <span>メールアドレス</span>
+                    <input id="leadEmail" name="email" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="hanako@example.com" required>
+                </label>
+                <label class="lead-consent">
+                    <input id="leadConsent" name="consent" type="checkbox" required>
+                    <span>入力した情報を、資料送付および TurnCloud・Accucrazy からのご案内に利用することに同意します</span>
+                </label>
+                <button id="leadSubmit" class="btn btn-primary" type="submit">登録して資料を受け取る</button>
+                <p id="leadStatus" class="lead-status" role="status" aria-live="polite"></p>
+            </form>
+
+            <div id="resultReadyBar" class="result-ready" hidden>
+                <span>ポスターが完成しました！</span>
+                <button class="btn btn-ghost" type="button" onclick="goToResult()">結果を見る</button>
+            </div>
+        </section>
+
+        <!-- Step 3: 結果 -->
+        <section id="step3" class="step">
+            <div class="step-head">
+                <span class="step-tag">STEP 03</span>
+                <h1 id="resultTitle">あなただけの<em>スムージー占い</em></h1>
+                <p class="subtitle" id="resultSubtitle">ダウンロードしてシェアしよう。友だちと一緒に Let's PEIGO!</p>
+            </div>
+
+            <div class="result-frame">
+                <img id="resultImage" class="result-image" alt="あなただけのスムージー占いポスター" hidden>
+                <canvas id="resultCanvas"></canvas>
+            </div>
+
+            <div id="fortuneCard" class="fortune-card" hidden>
+                <span class="fortune-kicker">今日のタロット</span>
+                <strong id="fortuneTitle"></strong>
+                <p id="fortuneAdvice"></p>
+            </div>
+
+            <div id="downloadQrCard" class="download-qr-card" hidden>
+                <div class="qr-copy">
+                    <span class="qr-kicker">SCAN TO DOWNLOAD</span>
+                    <strong>スキャンしてポスターをダウンロード</strong>
+                    <span>スマホのカメラで QR コードを読み取ると元画像が開きます</span>
+                </div>
+                <img id="downloadQrImage" class="download-qr" alt="ポスターダウンロード用 QR コード">
+            </div>
+
+            <div class="action-row">
+                <button class="btn btn-primary" type="button" onclick="downloadImage()">シェア画像をダウンロード</button>
+            </div>
+        </section>
+
+        <!-- Footer: パートナーブランド -->
+        <footer class="partner-footer">
+            <span class="powered">Powered by</span>
+            <div class="partner-logos">
+                <img src="assets/turncloud-logo.png" alt="TurnCloud" class="partner-logo partner-tc">
+                <span class="divider" aria-hidden="true"></span>
+                <img src="assets/accucrazy-logo.webp" alt="Accucrazy" class="partner-logo partner-accu">
+            </div>
+            <span class="copyright">© 2026 TurnCloud × Peigo ・ Let's PEIGO together!</span>
+        </footer>
+    </main>
+
+    <script src="script.js?v=2026092902"></script>
+</body>
+</html>

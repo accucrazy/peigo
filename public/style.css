@@ -24,6 +24,12 @@
     --font-en: "Poppins", "Noto Sans TC", sans-serif;
 }
 
+/* 日文版：改用日文字型 */
+html[lang="ja"] {
+    --font-tc: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", "Noto Sans TC", sans-serif;
+    --font-en: "Poppins", "Noto Sans JP", sans-serif;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -142,6 +148,41 @@ body {
     display: flex;
     flex-direction: column;
     line-height: 1.25;
+    flex: 1;
+    min-width: 0;
+}
+
+/* 語言切換 */
+.lang-switch {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lang-switch a {
+    display: block;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.lang-switch a:hover,
+.lang-switch a:focus-visible {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.lang-switch a[aria-current="page"] {
+    background: #fff;
+    color: var(--peigo-green);
+    border-color: #fff;
 }
 
 .tagline-en {
@@ -404,6 +445,17 @@ body {
     font-size: 0.78rem;
 }
 
+.tarot-meaning {
+    align-self: flex-start;
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--peigo-green-dark);
+    background: var(--peigo-green-soft);
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
 /* ── Loading 步驟 ───────────────────────── */
 .loading-card {
     background: #fff;
@@ -494,6 +546,167 @@ body {
     border-radius: 50%;
     background: var(--peigo-green);
     box-shadow: 0 0 0 4px rgba(15, 138, 95, 0.12);
+}
+
+/* ── 等待時的留資表單（日文版） ─────────── */
+.lead-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 22px 20px;
+    margin-top: 16px;
+    box-shadow: var(--shadow-card);
+    border: 2px solid var(--peigo-green-soft);
+}
+
+.lead-kicker {
+    font-family: var(--font-en);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--peigo-green);
+}
+
+.lead-title {
+    font-size: 1.08rem;
+    font-weight: 900;
+    color: var(--peigo-ink);
+    margin-top: -6px;
+}
+
+.lead-desc {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--peigo-muted);
+    line-height: 1.6;
+}
+
+.lead-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--peigo-ink);
+}
+
+.lead-field input {
+    font: inherit;
+    font-size: 16px; /* 避免 iOS 聚焦時自動放大 */
+    font-weight: 500;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--peigo-line);
+    background: #fbfdf9;
+    color: var(--peigo-ink);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lead-field input:focus {
+    border-color: var(--peigo-green);
+    box-shadow: 0 0 0 4px rgba(15, 138, 95, 0.12);
+}
+
+.lead-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 0.76rem;
+    color: var(--peigo-muted);
+    line-height: 1.5;
+}
+
+.lead-consent input {
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    flex-shrink: 0;
+    accent-color: var(--peigo-green);
+}
+
+.lead-form input:disabled {
+    opacity: 0.6;
+}
+
+.lead-status {
+    margin: 0;
+    min-height: 1.2em;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--peigo-green-dark);
+    text-align: center;
+}
+
+.lead-status.is-error {
+    color: #c0392b;
+}
+
+.result-ready {
+    position: sticky;
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 12px 12px 18px;
+    background: var(--peigo-ink);
+    color: #fff;
+    border-radius: 999px;
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.45);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.result-ready span {
+    flex: 1;
+}
+
+.result-ready .btn {
+    width: auto;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+}
+
+.result-ready[hidden],
+.download-qr-card[hidden],
+.fortune-card[hidden] {
+    display: none;
+}
+
+/* ── 結果頁：牌義卡 ─────────────────────── */
+.fortune-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: linear-gradient(135deg, #fffaf0 0%, #fff 100%);
+    border: 1px solid #f5e3a8;
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin: 0 0 18px;
+    box-shadow: var(--shadow-soft);
+}
+
+.fortune-kicker {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #b8860b;
+}
+
+.fortune-card strong {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--peigo-ink);
+}
+
+.fortune-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--peigo-ink);
 }
 
 /* ── 結果頁 ──────────────────────────────── */

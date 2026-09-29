@@ -55,7 +55,12 @@ app.use('/generated', express.static(GENERATED_DIR, {
     setHeaders: (res) => res.setHeader('Cache-Control', 'public, max-age=3600, immutable')
 }));
 
+// 以 key 對應素材（中/日文版的塔羅名稱不同）；保留中文名稱作為舊版相容
 const TAROT_ASSETS = {
+    sun: 'peigo-smoothie-01.jpg',
+    star: 'peigo-smoothie-02.jpg',
+    wheel: 'peigo-smoothie-03.jpg',
+    strength: 'peigo-smoothie-04.jpg',
     '太陽': 'peigo-smoothie-01.jpg',
     '星星': 'peigo-smoothie-02.jpg',
     '命運之輪': 'peigo-smoothie-03.jpg',
@@ -89,7 +94,7 @@ app.post(`${API_PREFIX}/fuse`, async (req, res) => {
         const turncloudLogo = readInlineAsset('turncloud-logo.png');
         const peigoLogo = readInlineAsset('peigo-logo.jpg');
         const accucrazyLogo = readInlineAsset('accucrazy-logo.webp');
-        const selectedTarot = readInlineAsset(TAROT_ASSETS[tarot.name] || TAROT_ASSETS['太陽']);
+        const selectedTarot = readInlineAsset(TAROT_ASSETS[tarot.key] || TAROT_ASSETS[tarot.name] || TAROT_ASSETS.sun);
         const mascot = readInlineAsset('go-mascot.jpg');
 
         const prompt = `${ENGINE_TAG} – Peigo Smart Smoothie campaign poster.
@@ -163,6 +168,77 @@ app.post(`${API_PREFIX}/fuse`, async (req, res) => {
         }
         console.error(`[${ENGINE_TAG}] Error:`, error.message);
         res.status(500).json({ error: 'Generation failed', details: error.message });
+    }
+});
+
+// ── 留資：名字 + email → Google Apps Script（寫入 Google Sheet 並寄送資料）
+const LEAD_WEBHOOK_URL = process.env.LEAD_WEBHOOK_URL;
+const LEAD_WEBHOOK_SECRET = process.env.LEAD_WEBHOOK_SECRET;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LEAD_LIMIT = 5;                    // 同一 IP 每 10 分鐘最多 5 次，避免被拿來亂寄信
+const LEAD_WINDOW_MS = 10 * 60 * 1000;
+const leadHits = new Map();
+
+function allowLead(ip) {
+    const now = Date.now();
+    const hits = (leadHits.get(ip) || []).filter(t => now - t < LEAD_WINDOW_MS);
+    if (hits.length >= LEAD_LIMIT) {
+        leadHits.set(ip, hits);
+        return false;
+    }
+    hits.push(now);
+    leadHits.set(ip, hits);
+    if (leadHits.size > 5000) leadHits.clear();
+    return true;
+}
+
+app.post('/api/lead', async (req, res) => {
+    const name = String(req.body?.name || '').trim().slice(0, 40);
+    const email = String(req.body?.email || '').trim().slice(0, 120);
+    const lang = req.body?.lang === 'ja' ? 'ja' : 'zh';
+    const tarot = String(req.body?.tarot || '').slice(0, 20);
+
+    if (!name || !EMAIL_RE.test(email) || req.body?.consent !== true) {
+        return res.status(400).json({ error: 'Invalid lead' });
+    }
+    if (!allowLead(req.ip)) {
+        return res.status(429).json({ error: 'Too many requests' });
+    }
+    if (!LEAD_WEBHOOK_URL || !LEAD_WEBHOOK_SECRET) {
+        console.error('[lead] LEAD_WEBHOOK_URL / LEAD_WEBHOOK_SECRET not configured');
+        return res.status(503).json({ error: 'Lead capture not configured' });
+    }
+
+    try {
+        // Apps Script 執行完 doPost 會 302 轉到 googleusercontent 取結果；
+        // axios 自動跟轉址會帶著 POST 內容而拿到 404，所以手動用 GET 跟一次
+        let response = await axios.post(LEAD_WEBHOOK_URL, {
+            secret: LEAD_WEBHOOK_SECRET,
+            name,
+            email,
+            lang,
+            tarot
+        }, {
+            timeout: 60000,
+            maxRedirects: 0,
+            validateStatus: (status) => status >= 200 && status < 400
+        });
+        if (response.status >= 300 && response.headers.location) {
+            response = await axios.get(response.headers.location, { timeout: 30000 });
+        }
+        // 偶爾 Google 會把 JSON 包在一頁 HTML 裡回傳，這時從內文把結果抓出來
+        if (typeof response.data === 'string') {
+            const match = response.data.match(/\{"ok":(?:true|false)[^{}]*\}/);
+            response.data = match ? JSON.parse(match[0]) : null;
+        }
+        if (!response.data || response.data.ok !== true) {
+            throw new Error(`Webhook replied ${JSON.stringify(response.data).slice(0, 200)}`);
+        }
+        console.log(`[lead] saved + mailed (${lang}, ${tarot})`);
+        res.json({ ok: true });
+    } catch (error) {
+        console.error('[lead] Error:', error.message);
+        res.status(502).json({ error: 'Lead delivery failed' });
     }
 });
 
