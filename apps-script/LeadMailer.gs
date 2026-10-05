@@ -7,10 +7,10 @@
 
    指令碼屬性（專案設定 → 指令碼屬性）：
      LEAD_SECRET   必填，與 Cloud Run 的 LEAD_WEBHOOK_SECRET 相同
-     DECK_FILE_ID  必填，要附上的 Drive 檔案 ID（網址 /d/<這一段>/view）
-     DECK_LABEL    選填，信中資料名稱，預設「会社紹介資料」
-     SENDER_NAME   選填，寄件者顯示名稱，預設「TurnCloud × Accucrazy」
-     REPLY_TO      選填，回信地址，預設 shelley@accucrazy.com
+     DECK_FILE_ID  必填，要附上的 Drive 檔案 ID（網址 /d/<這一段>/view）— 展會ブローシャー
+     WEBSITE_URL   必填，信中「弊社Webサイト」的網址
+     SENDER_NAME   選填，寄件者顯示名稱，預設「ターンクラウドジャパン」
+     REPLY_TO      選填，回信地址，預設 jpsales@turncloud2.com
    ========================================================= */
 
 const SHEET_NAME = 'Leads';
@@ -61,28 +61,40 @@ function doPost(e) {
 function sendDeck_(props, name, email) {
   const fileId = props.getProperty('DECK_FILE_ID');
   if (!fileId) throw new Error('DECK_FILE_ID not set');
-  const deckLabel = props.getProperty('DECK_LABEL') || '会社紹介資料';
-  const senderName = props.getProperty('SENDER_NAME') || 'TurnCloud × Accucrazy';
-  const replyTo = props.getProperty('REPLY_TO') || 'shelley@accucrazy.com';
+  const websiteUrl = props.getProperty('WEBSITE_URL');
+  if (!websiteUrl) throw new Error('WEBSITE_URL not set');
+  const senderName = props.getProperty('SENDER_NAME') || 'ターンクラウドジャパン';
+  const replyTo = props.getProperty('REPLY_TO') || 'jpsales@turncloud2.com';
   const attachment = DriveApp.getFileById(fileId).getBlob();
 
-  const subject = '【TurnCloud × Accucrazy】' + deckLabel + 'をお送りします';
+  const subject = '【ターンクラウドジャパン】第22回アジア太平洋小売業者大会 ご来場のお礼';
   const text = [
-    name + ' 様',
+    '本日は、第22回アジア太平洋小売業者大会にて、ターンクラウドブースへお越しいただき、誠にありがとうございました。',
     '',
-    'Peigo スムージータロットにご参加いただき、ありがとうございました。',
-    'ご登録のお礼として、TurnCloud × Accucrazy の' + deckLabel + 'を添付にてお送りいたします。',
+    'お客様の写真を活用したAIによる画像生成体験はいかがでしたでしょうか。',
+    '今回の体験を通じて、AIの可能性を少しでも感じていただけましたら幸いです。',
     '',
-    'ご不明な点やご相談がございましたら、本メールにご返信ください。',
+    'ターンクラウドでは、小売業を中心に、AIをはじめとする各種ソリューションや、AIを活用したマーケティングソリューションを通じて、お客様のDXをご支援しております。',
     '',
-    '――――――――――',
-    'Shelley Chen',
-    'TurnCloud Japan | Accucrazy',
-    'shelley@accucrazy.com'
+    'ぜひ弊社Webサイトもご覧ください。',
+    websiteUrl,
+    '',
+    'あわせて、今回の出展内容をご紹介したブローシャーを添付いたします。',
+    '弊社のソリューションをご理解いただく際のご参考になれば幸いです。',
+    '',
+    'このたびはターンクラウドブースへお立ち寄りいただき、誠にありがとうございました。',
+    '今後ともターンクラウドジャパンをよろしくお願いいたします。',
+    '',
+    'ターンクラウドジャパン株式会社',
+    'E-MAIL：jpsales@turncloud2.com'
   ].join('\n');
   const html = text
     .split('\n')
-    .map(line => escapeHtml_(line) || '&nbsp;')
+    .map(line => {
+      const safe = escapeHtml_(line);
+      if (line === websiteUrl) return '<a href="' + safe + '">' + safe + '</a>';
+      return safe.replace('jpsales@turncloud2.com', '<a href="mailto:jpsales@turncloud2.com">jpsales@turncloud2.com</a>') || '&nbsp;';
+    })
     .join('<br>');
 
   const options = { name: senderName, htmlBody: html, attachments: [attachment] };
