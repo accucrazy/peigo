@@ -3,11 +3,11 @@
    綁在 Google Sheet 上，部署成「網頁應用程式」後，
    Cloud Run 的 /api/lead 會把 { secret, name, email, lang, tarot } POST 過來：
      1) 寫一列到 Sheet「Leads」分頁
-     2) 從部署者的 Google 帳號寄信，附上 Drive 上的資料檔
+     2) 從部署者的 Google 帳號寄出感謝信，信中附上資料夾連結
 
    指令碼屬性（專案設定 → 指令碼屬性）：
      LEAD_SECRET   必填，與 Cloud Run 的 LEAD_WEBHOOK_SECRET 相同
-     DECK_FILE_ID  必填，要附上的 Drive 檔案 ID（網址 /d/<這一段>/view）— 展會ブローシャー
+     BROCHURE_URL  選填，資料（PDF）Drive 資料夾連結，預設為展會資料夾；需設為「知道連結的任何人」可檢視
      WEBSITE_URL   必填，信中「弊社Webサイト」的網址
      SENDER_NAME   選填，寄件者顯示名稱，預設「ターンクラウドジャパン」
      REPLY_TO      選填，回信地址，預設 jpsales@turncloud2.com
@@ -15,6 +15,7 @@
 
 const SHEET_NAME = 'Leads';
 const HEADERS = ['登録日時', 'お名前', 'メールアドレス', '言語', 'タロット', '送信状態'];
+const DEFAULT_BROCHURE_URL = 'https://drive.google.com/drive/folders/1jwC9Xsqy3Tft4EQkUzFmQri6LD0RwYNv';
 const TAROT_LABELS = { sun: '太陽', star: '星', wheel: '運命の輪', strength: '力' };
 
 function doPost(e) {
@@ -59,13 +60,11 @@ function doPost(e) {
 }
 
 function sendDeck_(props, name, email) {
-  const fileId = props.getProperty('DECK_FILE_ID');
-  if (!fileId) throw new Error('DECK_FILE_ID not set');
+  const brochureUrl = props.getProperty('BROCHURE_URL') || DEFAULT_BROCHURE_URL;
   const websiteUrl = props.getProperty('WEBSITE_URL');
   if (!websiteUrl) throw new Error('WEBSITE_URL not set');
   const senderName = props.getProperty('SENDER_NAME') || 'ターンクラウドジャパン';
   const replyTo = props.getProperty('REPLY_TO') || 'jpsales@turncloud2.com';
-  const attachment = DriveApp.getFileById(fileId).getBlob();
 
   const subject = '【ターンクラウドジャパン】第22回アジア太平洋小売業者大会 ご来場のお礼';
   const text = [
@@ -81,7 +80,8 @@ function sendDeck_(props, name, email) {
     'ぜひ弊社Webサイトもご覧ください。',
     websiteUrl,
     '',
-    'あわせて、今回の出展内容をご紹介したブローシャーを添付いたします。',
+    'あわせて、今回の出展内容をご紹介した資料（PDF）を、下記リンクよりご覧いただけます。',
+    brochureUrl,
     '弊社のソリューションをご理解いただく際のご参考になれば幸いです。',
     '',
     'このたびはターンクラウドブースへお立ち寄りいただき、誠にありがとうございました。',
@@ -94,12 +94,12 @@ function sendDeck_(props, name, email) {
     .split('\n')
     .map(line => {
       const safe = escapeHtml_(line);
-      if (line === websiteUrl) return '<a href="' + safe + '">' + safe + '</a>';
+      if (line === websiteUrl || line === brochureUrl) return '<a href="' + safe + '">' + safe + '</a>';
       return safe.replace('jpsales@turncloud2.com', '<a href="mailto:jpsales@turncloud2.com">jpsales@turncloud2.com</a>') || '&nbsp;';
     })
     .join('<br>');
 
-  const options = { name: senderName, htmlBody: html, attachments: [attachment] };
+  const options = { name: senderName, htmlBody: html };
   if (replyTo) options.replyTo = replyTo;
   MailApp.sendEmail(email, subject, text, options);
 }
